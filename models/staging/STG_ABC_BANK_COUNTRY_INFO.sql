@@ -1,0 +1,65 @@
+{{config(materialized='ephemeral')}}
+
+WITH CTE_COUNTRIES as
+(
+  SELECT 
+     COUNTRY_NAME -- TEXT
+    ,COUNTRY_CODE_2_LETTER -- TEXT
+    ,COUNTRY_CODE_3_LETTER -- TEXT
+    ,COUNTRY_CODE_NUMERIC -- NUMBER
+    ,IFNULL(ISO_3166_2, 'NA') AS ISO_3166_2 -- TEXT
+    ,IFNULL(REGION, 'NA') AS REGION-- TEXT
+    ,IFNULL(SUB_REGION, 'NA') AS SUB_REGION -- TEXT
+    ,IFNULL(INTERMEDIATE_REGION, 'NA') AS INTERMEDIATE_REGION -- TEXT
+    ,IFNULL(REGION_CODE, -1) AS REGION_CODE -- NUMBER
+    ,IFNULL(SUB_REGION_CODE, -1) AS SUB_REGION_CODE -- NUMBER
+    ,IFNULL(INTERMEDIATE_REGION_CODE, -1) AS INTERMEDIATE_REGION_CODE-- NUMBER
+    ,LOAD_TS -- TIMESTAMP_NTZ
+  FROM {{source('seeds', 'ABC_BANK_COUNTRY_INFO')}}
+)
+, 
+DEFAULT_ROW AS 
+(
+SELECT 
+     'Missing' as COUNTRY_NAME -- TEXT
+    ,'Missing' as COUNTRY_CODE_2_LETTER -- TEXT
+    ,'Missing' as COUNTRY_CODE_3_LETTER -- TEXT
+    ,-1 as COUNTRY_CODE_NUMERIC -- NUMBER
+    ,'Missing' as ISO_3166_2 -- TEXT
+    ,'Missing' as REGION -- TEXT
+    ,'Missing' as SUB_REGION -- TEXT
+    ,'Missing' as INTERMEDIATE_REGION -- TEXT
+    ,-1 as REGION_CODE -- NUMBER
+    ,-1 as SUB_REGION_CODE -- NUMBER
+    ,-1 as INTERMEDIATE_REGION_CODE -- NUMBER
+    ,'1900-07-03 15:53:14.705' as LOAD_TS -- TIMESTAMP_NTZ
+)
+,
+ALL_ROWS AS
+(
+SELECT *
+FROM CTE_COUNTRIES
+UNION ALL 
+SELECT *
+FROM DEFAULT_ROW
+)
+,hashed AS 
+(
+SELECT  
+         concat_ws('|', COUNTRY_CODE_3_LETTER) AS COUNTRY_HKEY
+       , concat_ws('|', COUNTRY_CODE_3_LETTER ,INTERMEDIATE_REGION
+                        ,SUB_REGION_CODE
+                        ,COUNTRY_CODE_2_LETTER
+                        ,ISO_3166_2
+                        ,SUB_REGION
+                        ,COUNTRY_NAME
+                        ,REGION_CODE
+                        ,REGION
+                        ,COUNTRY_CODE_NUMERIC
+                        ,INTERMEDIATE_REGION_CODE
+                   ) as COUNTRY_HDIFF
+        , *
+FROM  ALL_ROWS   
+)
+SELECT *
+FROM hashed
