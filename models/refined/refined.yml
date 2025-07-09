@@ -7,9 +7,22 @@ models:
         - name: UNREALIZED_PROFIT
           description: The unrealized profit on the position.
           tests:
-            - not_null
+           - not_null
+          
         - name: UNREALIZED_PROFIT_PCT
           description: >
-                The unrealized profit percentage on the position.
+                The unrealized profit percentage on the position.p
           tests:
             - not_null
+            
+        - name: SECURITY_CODE
+          description: The code of the security in the position.
+          tests:
+            - relationships:
+                to: ref('REF_ABC_BANK_SECURITY_INFO')
+                field: SECURITY_CODE
+
+
+   - name: REF_SECURITY_INFO_ABC_BANK
+     tests:
+        - has_default_record

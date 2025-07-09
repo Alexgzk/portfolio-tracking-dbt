@@ -58,7 +58,8 @@ SELECT
                         ,COUNTRY_CODE_NUMERIC
                         ,INTERMEDIATE_REGION_CODE
                    ) as COUNTRY_HDIFF
-        , *
+        , * EXCLUDE LOAD_TS
+        , LOAD_TS as LOAD_TS_UTC
 FROM  ALL_ROWS   
 )
 SELECT *
